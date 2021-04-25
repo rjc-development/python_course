@@ -52,13 +52,14 @@ def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
     notebook_path = get_notebook_path()
     print(notebook_path)
     user_email = user_name.lower() + "@rjc.ca"
+    print(user_email, user_name)
     account = connect_to_rjc_exchange(user_email, user_name)
     message = exchangelib.Message(
         account=account,
         folder=account.sent,
         subject=subject_line,
         body='Workbook submission',
-        to_recipients=[exchangelib.Mailbox(email_address=recipient)]
+        to_recipients=[recipient]
     )
     with open(notebook_path) as nb_file:
         nb_data = nb_file.read()
