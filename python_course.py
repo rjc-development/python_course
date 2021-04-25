@@ -45,14 +45,12 @@ def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
     Exchange account in an email with 'subject_line' to 'recipient'.
     """
     user_name = get_hub_user()
-    if not user_name:
+    if username_backup or not user_name:
         user_name = username_backup
     # if not user_name:
     #     raise EnvironmentError("submit_workbook() must be run from within a Jupyter Hub environment.")
     notebook_path = get_notebook_path()
-    print(notebook_path)
     user_email = user_name.lower() + "@rjc.ca"
-    print(user_email, user_name)
     account = connect_to_rjc_exchange(user_email, user_name)
     message = exchangelib.Message(
         account=account,
