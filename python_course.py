@@ -60,7 +60,7 @@ def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
         to_recipients=[recipient]
     )
     with open(notebook_path) as nb_file:
-        nb_data = nb_file.read()
+        nb_data = nb_file.read().encode("utf-8")
     attachment = exchangelib.FileAttachment(name=notebook_path.name, content=nb_data)
     message.attach(attachment)
     message.send_and_save()
