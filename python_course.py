@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 import exchangelib
 import getpass
 import ipyparams
