@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional, Dict
 import exchangelib
 import getpass
@@ -36,7 +37,7 @@ def get_hub_user() -> Optional[UserName]:
     return user
 
 
-def submit_workbook(subject_line: str, recipient: Email):
+def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
     """
     Returns None. Assumes being run in a Jupyter environment.
 
@@ -44,9 +45,14 @@ def submit_workbook(subject_line: str, recipient: Email):
     Exchange account in an email with 'subject_line' to 'recipient'.
     """
     user_name = get_hub_user()
+    if not user_name:
+        user_name = username_backup
+    # if not user_name:
+    #     raise EnvironmentError("submit_workbook() must be run from within a Jupyter Hub environment.")
     notebook_path = get_notebook_path()
-    user_email = user_name.lower() + "rjc.ca"
-    account = connect_to_rjc_exchange(user_email)
+    print(notebook_path)
+    user_email = user_name.lower() + "@rjc.ca"
+    account = connect_to_rjc_exchange(user_email, user_name)
     message = exchangelib.Message(
         account=account,
         folder=account.sent,
@@ -70,13 +76,12 @@ def get_notebook_path():
     return cwd / file_name
 
 
-def connect_to_rjc_exchange(email: Email) -> exchangelib.Account:
+def connect_to_rjc_exchange(email: Email, username: UserName) -> exchangelib.Account:
     """
     Get Exchange account connection with RJC email server
     """
     server = "mail.rjc.ca"
     domain = "RJC"
-    username = get_hub_user()
     return connect_to_exchange(server, domain, email, username)
 
 
