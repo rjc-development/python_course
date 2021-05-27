@@ -47,21 +47,12 @@ def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
     user_name = get_hub_user()
     if username_backup or not user_name:
         user_name = username_backup
-    if not user_name:
-        raise EnvironmentError("submit_workbook() must be run from within a Jupyter Hub environment.")
+    # if not user_name:
+    #     raise EnvironmentError("submit_workbook() must be run from within a Jupyter Hub environment.")
     notebook_path = get_notebook_path()
     user_email = user_name.lower() + "@rjc.ca"
-    try:
-        account = connect_to_rjc_exchange(user_email, user_name)
-    except exchangelib.errors.UnauthorizedError:
-        raise ValueError(
-            "It seems your email credentials may be incorrect. Check the following:\n\n"
-            f"Username: {user_name}\n"
-            f"Email: {user_email}\n"
-            "If both of these are correct, you probably typed your password wrong. Try again.\n"
-            "If your username is incorrect, type your correct username as the third argument for this function, e.g.\n"
-            "submit_workbook('Workbook 1 Submission', 'cferster@rjc.ca', 'myusername')"
-            )
+    
+    account = connect_to_rjc_exchange(user_email, user_name)
     message = exchangelib.Message(
         account=account,
         folder=account.sent,
@@ -74,6 +65,7 @@ def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
     attachment = exchangelib.FileAttachment(name=notebook_path.name, content=nb_data)
     message.attach(attachment)
     message.send_and_save()
+    print(f"{notebook_path.name} successfully submitted to {recipient}")
 
 
 def get_notebook_path():
@@ -82,7 +74,7 @@ def get_notebook_path():
     """
     cwd = pathlib.Path.cwd()
     file_name = ipyparams.notebook_name
-    file_name
+    file_name = file_name.replace("%20", " ")
     return cwd / file_name
 
 
