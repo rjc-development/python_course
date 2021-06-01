@@ -6,6 +6,8 @@ import ipyparams
 import pathlib
 import os
 
+__version__ = "0.0.8"
+
 Email: str
 # interp. An email address as a string
 # Examples: 
@@ -37,12 +39,33 @@ def get_hub_user() -> Optional[UserName]:
     return user
 
 
-def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
+def submit_workbook(
+    subject_line: str,
+    recipient: Email,
+    username_backup: Optional[str] = None,
+    cc_me: bool = False
+    ):
     """
-    Returns None. Assumes being run in a Jupyter environment.
+    Emails the current notebook to 'recipient' with 'subject_line'.
+    If 'cc_me' is True, then the email will also "CC" the current user.
 
-    Emails the current Jupyter Notebook as an attachment through the user's 
-    Exchange account in an email with 'subject_line' to 'recipient'.
+    Uses the RJC Exchange mail server. Passwords are handled securely with
+    the getpass library in the Python standard library.
+
+    The current user is known through a query of the user's Jupyter username.
+    Since the username is created from the user's RJC email prefix, once the
+    username is known, the user's email address is known. This makes things
+    convenient.
+
+    'subject_line': a str representing the subject line to be used in the email
+    'recipient': the primary recipient of the email, typically the Python course
+        administrator.
+    'cc_me': a bool indicating whether the current user should be "CC'd" on the
+        email.
+    'username_backup': If provided, this is used as an override for the current
+        user's username. To be used when testing functionality from an account
+        that is not linked to an RJC email (e.g. a JupyterHub admin account).
+        Not useful in typical operation.
     """
     user_name = get_hub_user()
     if username_backup or not user_name:
@@ -53,12 +76,16 @@ def submit_workbook(subject_line: str, recipient: Email, username_backup=None):
     user_email = user_name.lower() + "@rjc.ca"
     
     account = connect_to_rjc_exchange(user_email, user_name)
+    cc_user = []
+    if cc_me:
+        cc_user = [user_email]
     message = exchangelib.Message(
         account=account,
         folder=account.sent,
         subject=subject_line,
-        body='Workbook submission',
-        to_recipients=[recipient]
+        body=f'{notebook_path.name} submission',
+        to_recipients=[recipient],
+        cc_recipients=cc_user,
     )
     with open(notebook_path) as nb_file:
         nb_data = nb_file.read().encode("utf-8")
